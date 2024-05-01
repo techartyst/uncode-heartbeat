@@ -15,11 +15,8 @@ const dbHost = process.env.DB_HOST;
 // MongoDB connection
 const connectDB = async () => {
     try {
-      const db = await mongoose.connect(dbHost, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
-      console.log(`mongodb connected ${db.connection.host}`);
+      const db = await mongoose.connect(dbHost);
+      //console.log(`mongodb connected ${db.connection.host}`);
     } catch (err) {
       console.log(err);
       process.exit(1);
