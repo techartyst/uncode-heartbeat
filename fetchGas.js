@@ -12,6 +12,10 @@ const apiKey = process.env.ETHER_APIKEY
 const baseUrl = "https://api.etherscan.io/api";
 const dbHost = process.env.DB_HOST;
 
+app.listen(8000, () => {
+    console.log(`Server is running on PORT ${8000}`);
+  });
+
 // MongoDB connection
 const connectDB = async () => {
     try {
