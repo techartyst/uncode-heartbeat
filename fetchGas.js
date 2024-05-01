@@ -4,6 +4,8 @@
  * Developer: Afzal Ibrahim
  */
 
+const express = require('express');
+const app = express();
 require('dotenv').config();
 const axios = require('axios');
 const mongoose = require('mongoose');
@@ -12,9 +14,7 @@ const apiKey = process.env.ETHER_APIKEY
 const baseUrl = "https://api.etherscan.io/api";
 const dbHost = process.env.DB_HOST;
 
-app.listen(8000, () => {
-    console.log(`Server is running on PORT ${8000}`);
-  });
+
 
 // MongoDB connection
 const connectDB = async () => {
@@ -84,3 +84,9 @@ async function saveGasFees() {
 
 // Call the function to save gas fees
 saveGasFees();
+
+// Add a listening port
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
