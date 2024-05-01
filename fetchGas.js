@@ -3,25 +3,26 @@ const app = express();
 require('dotenv').config();
 const axios = require('axios');
 const mongoose = require('mongoose');
-const cron = require('node-cron');
+const Agenda = require('agenda');
 
 const apiKey = process.env.ETHER_APIKEY;
 const baseUrl = "https://api.etherscan.io/api";
 const dbHost = process.env.DB_HOST;
+//const mongoConnectionString = `${dbHost}/agenda`;
 
-// MongoDB connection
+// MongoDB connection setup
 const connectDB = async () => {
     try {
-        const db = await mongoose.connect(dbHost);
-        //console.log(`mongodb connected ${db.connection.host}`);
+        await mongoose.connect(dbHost);
+        console.log('MongoDB connected successfully');
     } catch (err) {
-        console.log(err);
+        console.error('Failed to connect to MongoDB:', err.message);
         process.exit(1);
     }
 };
 connectDB();
 
-// Schema definition
+// Define the schema for gas fees
 const heartbeatSchema = new mongoose.Schema({
     date: Date,
     hour: Number,
@@ -29,38 +30,45 @@ const heartbeatSchema = new mongoose.Schema({
     ETHGasFee: Number
 });
 
-// Create a model from the schema
+// Model from schema
 const Heartbeat = mongoose.model('Heartbeat', heartbeatSchema);
 
 // Fetch BTC Gas Fees
 async function fetchBTCFees() {
     const url = 'https://blockstream.info/api/fee-estimates';
-
     try {
         const response = await axios.get(url);
         console.log(`Fastest Fee (Next Block): ${response.data['1']} sats/vB`);
-        return response.data['1'];  // Return the fastest fee
+        return response.data['1'];
     } catch (error) {
-        console.error("Error fetching Bitcoin fees:", error);
+        console.error("Error fetching Bitcoin fees:", error.message);
+        return null;
     }
 }
 
-// Fetch gas prices
+// Fetch ETH Gas Prices
 async function fetchETHGasPrices() {
     try {
         const response = await axios.get(`${baseUrl}?module=gastracker&action=gasoracle&apikey=${apiKey}`);
         const prices = response.data.result;
         const avgPrice = (parseInt(prices.SafeGasPrice) + parseInt(prices.ProposeGasPrice) + parseInt(prices.FastGasPrice)) / 3;
         console.log(`Average Gas Price: ${avgPrice}`);
-        return avgPrice;  // Return the average gas price
+        return avgPrice;
     } catch (error) {
-        console.error("Error fetching gas prices:", error);
+        console.error("Error fetching Ethereum gas prices:", error.message);
+        return null;
     }
 }
 
-// Save gas fees
+// Save gas fees to the database
 async function saveGasFees() {
+    console.log('Starting to fetch and save gas fees...');
     const [btcFee, ethFee] = await Promise.all([fetchBTCFees(), fetchETHGasPrices()]);
+
+    if (!btcFee || !ethFee) {
+        console.error('Failed to fetch gas fees, not saving data');
+        return;
+    }
 
     const now = new Date();
     const heartBeatEntry = new Heartbeat({
@@ -70,14 +78,28 @@ async function saveGasFees() {
         ETHGasFee: ethFee
     });
 
-    await heartBeatEntry.save();
-    console.log("Gas fees saved to MongoDB");
+    try {
+        await heartBeatEntry.save();
+        console.log("Gas fees saved to MongoDB successfully");
+    } catch (error) {
+        console.error("Error saving gas fees to MongoDB:", error.message);
+    }
 }
 
-// Schedule the task to run every hour
-cron.schedule('0 * * * *', saveGasFees);
+// Setup Agenda
+const agenda = new Agenda({db: {address: dbHost, collection: 'jobs'}});
 
-// Add a listening port
+agenda.define('save gas fees', async job => {
+    await saveGasFees();
+});
+
+(async function() {
+    await agenda.start();
+    await agenda.every('1 hour', 'save gas fees');
+    console.log('Agenda job scheduled to save gas fees every hour');
+})();
+
+// Server setup
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
