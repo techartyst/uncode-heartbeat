@@ -1,33 +1,25 @@
-/**
- * This service handles the retrieval and storage of cryptocurrency gas fees, specifically for Bitcoin and Ethereum.
- * The collected data is utilized by trust.uncode.art to dynamically generate NFTs based on the current gas fees.
- * Developer: Afzal Ibrahim
- */
-
 const express = require('express');
 const app = express();
 require('dotenv').config();
 const axios = require('axios');
 const mongoose = require('mongoose');
+const cron = require('node-cron');
 
-const apiKey = process.env.ETHER_APIKEY
+const apiKey = process.env.ETHER_APIKEY;
 const baseUrl = "https://api.etherscan.io/api";
 const dbHost = process.env.DB_HOST;
-
-
 
 // MongoDB connection
 const connectDB = async () => {
     try {
-      const db = await mongoose.connect(dbHost);
-      //console.log(`mongodb connected ${db.connection.host}`);
+        const db = await mongoose.connect(dbHost);
+        //console.log(`mongodb connected ${db.connection.host}`);
     } catch (err) {
-      console.log(err);
-      process.exit(1);
+        console.log(err);
+        process.exit(1);
     }
-  };
-  connectDB();
-  
+};
+connectDB();
 
 // Schema definition
 const heartbeatSchema = new mongoose.Schema({
@@ -40,7 +32,7 @@ const heartbeatSchema = new mongoose.Schema({
 // Create a model from the schema
 const Heartbeat = mongoose.model('Heartbeat', heartbeatSchema);
 
-// Fethc BTC Gas Fees
+// Fetch BTC Gas Fees
 async function fetchBTCFees() {
     const url = 'https://blockstream.info/api/fee-estimates';
 
@@ -66,7 +58,7 @@ async function fetchETHGasPrices() {
     }
 }
 
-//Save gas fees
+// Save gas fees
 async function saveGasFees() {
     const [btcFee, ethFee] = await Promise.all([fetchBTCFees(), fetchETHGasPrices()]);
 
@@ -82,8 +74,8 @@ async function saveGasFees() {
     console.log("Gas fees saved to MongoDB");
 }
 
-// Call the function to save gas fees
-saveGasFees();
+// Schedule the task to run every hour
+cron.schedule('0 * * * *', saveGasFees);
 
 // Add a listening port
 const PORT = process.env.PORT || 3000;
