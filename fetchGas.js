@@ -95,7 +95,7 @@ agenda.define('save gas fees', async job => {
 
 (async function() {
     await agenda.start();
-    await agenda.every('3 minutes', 'save gas fees');
+    await agenda.every('1 hour', 'save gas fees');
     console.log('Agenda job scheduled to save gas fees every hour');
 })();
 
