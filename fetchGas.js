@@ -3,10 +3,12 @@ const app = express();
 require('dotenv').config();
 const axios = require('axios');
 const mongoose = require('mongoose');
+const Agenda = require('agenda');
 
 const apiKey = process.env.ETHER_APIKEY;
 const baseUrl = "https://api.etherscan.io/api";
 const dbHost = process.env.DB_HOST;
+//const mongoConnectionString = `${dbHost}/agenda`;
 
 // MongoDB connection setup
 const connectDB = async () => {
@@ -84,9 +86,21 @@ async function saveGasFees() {
     }
 }
 
+// Setup Agenda
+const agenda = new Agenda({db: {address: dbHost, collection: 'jobs'}});
+
+agenda.define('save gas fees', async job => {
+    await saveGasFees();
+});
+
+(async function() {
+    await agenda.start();
+    await agenda.every('13 minutes', 'save gas fees');
+    console.log('Agenda job scheduled to save gas fees every hour');
+})();
+
 // Server setup
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-saveGasFees();
