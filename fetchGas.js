@@ -96,13 +96,6 @@ async function getFees() {
             return;
         }
 
-        console.log('Last 200 gas fee records:');
-        lastFees.forEach((record, index) => {
-            console.log(
-                `Record ${index + 1}: Date: ${record.date}, Hour: ${record.hour}, BTC Gas Fee: ${record.BTCGasFee} sats/vB, ETH Gas Fee: ${record.ETHGasFee} gwei`
-            );
-        });
-
         return lastFees;
     } catch (error) {
         console.error('Error fetching last 200 gas fees from the database:', error.message);
