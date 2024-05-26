@@ -38,7 +38,7 @@ async function fetchBTCFees() {
     const url = 'https://blockstream.info/api/fee-estimates';
     try {
         const response = await axios.get(url);
-       // console.log(`Fastest Fee (Next Block): ${response.data['1']} sats/vB`);
+        console.log(`Fastest Fee (Next Block): ${response.data['1']} sats/vB`);
         return response.data['1'];
     } catch (error) {
         console.error("Error fetching Bitcoin fees:", error.message);
@@ -85,41 +85,6 @@ async function saveGasFees() {
         console.error("Error saving gas fees to MongoDB:", error.message);
     }
 }
-
-// Fetch and log the last 200 gas fee records from the database
-async function getFees() {
-    try {
-        const lastFees = await Heartbeat.find().sort({ date: -1 }).limit(200);
-
-        if (!lastFees || lastFees.length === 0) {
-            console.error('No gas fee records found in the database');
-            return;
-        }
-
-        console.log('Last 200 gas fee records:');
-        lastFees.forEach((record, index) => {
-            console.log(
-                `Record ${index + 1}: Date: ${record.date}, Hour: ${record.hour}, BTC Gas Fee: ${record.BTCGasFee} sats/vB, ETH Gas Fee: ${record.ETHGasFee} gwei`
-            );
-        });
-
-        return lastFees;
-    } catch (error) {
-        console.error('Error fetching last 200 gas fees from the database:', error.message);
-        return null;
-    }
-}
-
-// Define the API route to get fees
-app.get('/fees', async (req, res) => {
-    try {
-        const fees = await getFees();
-        res.json(fees);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch fees' });
-    }
-});
-
 
 // Setup Agenda
 const agenda = new Agenda({db: {address: dbHost, collection: 'jobs'}});
