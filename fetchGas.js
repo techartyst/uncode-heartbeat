@@ -110,6 +110,15 @@ async function getFees() {
     }
 }
 
+// Define the API route to get fees
+app.get('/fees', async (req, res) => {
+    try {
+        const fees = await getFees();
+        res.json(fees);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch fees' });
+    }
+});
 
 
 // Setup Agenda
