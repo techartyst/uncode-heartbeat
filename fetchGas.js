@@ -38,7 +38,7 @@ async function fetchBTCFees() {
     const url = 'https://blockstream.info/api/fee-estimates';
     try {
         const response = await axios.get(url);
-        console.log(`Fastest Fee (Next Block): ${response.data['1']} sats/vB`);
+       // console.log(`Fastest Fee (Next Block): ${response.data['1']} sats/vB`);
         return response.data['1'];
     } catch (error) {
         console.error("Error fetching Bitcoin fees:", error.message);
