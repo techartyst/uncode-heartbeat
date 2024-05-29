@@ -9,6 +9,8 @@ const cors = require('cors');
 app.use(cors({
     origin: 'https://heartmeadow.netlify.app'
   }));
+  app.use(express.json()); // To parse JSON bodies
+
 
 const apiKey = process.env.ETHER_APIKEY;
 const baseUrl = "https://api.etherscan.io/api";
