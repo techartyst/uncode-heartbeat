@@ -4,6 +4,11 @@ require('dotenv').config();
 const axios = require('axios');
 const mongoose = require('mongoose');
 const Agenda = require('agenda');
+const cors = require('cors');
+
+app.use(cors({
+    origin: 'https://heartmeadow.netlify.app'
+  }));
 
 const apiKey = process.env.ETHER_APIKEY;
 const baseUrl = "https://api.etherscan.io/api";
