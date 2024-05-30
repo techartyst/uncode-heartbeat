@@ -7,7 +7,7 @@ const Agenda = require('agenda');
 const cors = require('cors');
 
 app.use(cors({
-    origin: 'https://heartmeadow.netlify.app'
+    origin: 'https://theheartbeat.netlify.app'
   }));
   app.use(express.json()); // To parse JSON bodies
 
